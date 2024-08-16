@@ -2,6 +2,7 @@ import {asyncHandler} from '../utils/asyncHandler.js'
 import { User } from '../models/user.model.js'
 import {ApiError} from '../utils/ApiError.js'
 import {ApiResponce} from '../utils/ApiResponce.js'
+import uploadOnCloudinary from '../utils/cloudinary.js'
 
 const options = {
     httpOnly:true,
@@ -11,8 +12,8 @@ const options = {
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findById(userId)
-        refreshToken = user.generateRefreshToken()
-        accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+        const accessToken = user.generateAccessToken()
     
         user.refreshToken = refreshToken
         await user.save({validateBeforeSave:true})
@@ -101,7 +102,7 @@ const login = asyncHandler(async (req,res) => {
         throw new ApiError(403,"Incorrect password")
     }
 
-    const {refreshToken,accessToken} = generateAccessAndRefreshToken(existedUser._id)
+    const {refreshToken,accessToken} = await generateAccessAndRefreshToken(existedUser._id)
 
     const user = await User.findById(existedUser._id).select("-password -refreshToken")
 
@@ -111,6 +112,7 @@ const login = asyncHandler(async (req,res) => {
               .json(new ApiResponce(
                 200,
                 {
+                    user,
                     refreshToken,
                     accessToken
                 },
@@ -118,7 +120,42 @@ const login = asyncHandler(async (req,res) => {
               ))
 })
 
+const logout = asyncHandler(async (req,res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $unset:{
+                refreshToken:1
+            }
+        },
+        {
+            new:true
+        }
+    )
+    
+    return res.status(200)
+              .clearCookie("accessToken",options)
+              .clearCookie("refreshToken",options)
+              .json(new ApiResponce(200,{},"User successfully logged out"))
+})
+
+const createPost = asyncHandler(async (req,res) => {
+    const {title, content} = req.body
+
+    if(!title){
+        throw new ApiError(400,"Title is required")
+    }
+
+    const imageLocalPaths = req.files?.images.map((e) => e?.path)
+    let images;
+    if(imageLocalPaths || imageLocalPaths.length > 0){
+        images = imageLocalPaths.map(async e => await uploadOnCloudinary(e))
+    }
+})
+
+
 export {
     registerUser,
-    login
+    login,
+    logout
 }
