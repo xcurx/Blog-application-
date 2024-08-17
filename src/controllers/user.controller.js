@@ -2,7 +2,6 @@ import {asyncHandler} from '../utils/asyncHandler.js'
 import { User } from '../models/user.model.js'
 import {ApiError} from '../utils/ApiError.js'
 import {ApiResponce} from '../utils/ApiResponce.js'
-import uploadOnCloudinary from '../utils/cloudinary.js'
 
 const options = {
     httpOnly:true,
@@ -137,20 +136,6 @@ const logout = asyncHandler(async (req,res) => {
               .clearCookie("accessToken",options)
               .clearCookie("refreshToken",options)
               .json(new ApiResponce(200,{},"User successfully logged out"))
-})
-
-const createPost = asyncHandler(async (req,res) => {
-    const {title, content} = req.body
-
-    if(!title){
-        throw new ApiError(400,"Title is required")
-    }
-
-    const imageLocalPaths = req.files?.images.map((e) => e?.path)
-    let images;
-    if(imageLocalPaths || imageLocalPaths.length > 0){
-        images = imageLocalPaths.map(async e => await uploadOnCloudinary(e))
-    }
 })
 
 

@@ -8,15 +8,18 @@ const postSchema = Schema({
     content:{
         type:String
     },
-    images:{
-        type:String
-    },
+    images:[
+        {
+            type:String
+        }
+    ],
     videos:{
         type:String
     },
     account:{
         type:Schema.Types.ObjectId,
-        ref:"User"
+        ref:"User",
+        required:true
     }
 },{timestamps:true})
 

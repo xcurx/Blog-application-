@@ -2,8 +2,8 @@ import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({ 
     cloud_name: 'xcurxcloud', 
-    api_key: CLOUDINARY_API_KEY, 
-    api_secret: CLOUDINARY_API_SECRET
+    api_key: process.env.CLOUDINARY_API_KEY, 
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const uploadOnCloudinary = async (localFilePath) => {
