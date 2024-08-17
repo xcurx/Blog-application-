@@ -16,6 +16,10 @@ const postSchema = Schema({
     videos:{
         type:String
     },
+    isVisible:{
+        type:Boolean,
+        default:true
+    },
     account:{
         type:Schema.Types.ObjectId,
         ref:"User",
