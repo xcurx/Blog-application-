@@ -24,13 +24,6 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req,res) => {
-    // get user details -- done
-    // check if all details present or not -- done
-    // validate details -- done
-    // check if user already exists -- done
-    // create db entry -- done
-    // retrun res -- done
-
     const {username, email, name, password} = req.body
 
     if([username, email, name, password].some(e => e==null || e?.trim() === "")){
@@ -73,13 +66,6 @@ const registerUser = asyncHandler(async (req,res) => {
 })
 
 const login = asyncHandler(async (req,res) => {
-    // user details -- done
-    // check details -- done
-    // check if user exists or not -- done
-    // password check -- done
-    // refresh and access token -- done
-    // send cookie -- done
-
     const {username, email, password} = req.body
 
     if(!(username || email)){
