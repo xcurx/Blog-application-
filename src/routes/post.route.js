@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {verifyJWT} from '../middlewares/auth.middleware.js'
-import { allPosts, createPost, downVote, upvote } from "../controllers/post.controller.js";
+import { allPosts, createPost, downVote, getPost, upvote } from "../controllers/post.controller.js";
 import { upload } from "../middlewares/multer.middleware.js"
 import { comment } from "../controllers/comment.controller.js";
 
@@ -21,4 +21,5 @@ router.route("/allposts/:username").get(verifyJWT,allPosts)
 
 router.route("/comment").post(verifyJWT,comment)
 
+router.route("/:postId").get(verifyJWT,getPost)
 export default router
