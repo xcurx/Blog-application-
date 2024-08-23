@@ -13,7 +13,7 @@ const comment = asyncHandler(async (req,res) => {
     }
 
     if(!req.user){
-        throw new ApiError(401,"Unautorized request")
+        throw new ApiError(401,"Unauthorized request")
     }
     
     if(!mongoose.Types.ObjectId.isValid(postId)){
@@ -46,7 +46,7 @@ const comment = asyncHandler(async (req,res) => {
     }
 
     return res.status(200)
-              .json(new ApiResponce(200,comment,"Comment Successfull"))
+              .json(new ApiResponce(201,comment,"Comment Successfull"))
 })
 
 export {

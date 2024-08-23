@@ -37,7 +37,7 @@ const createPost = asyncHandler(async (req,res) => {
     }
 
     return res.status(200)
-              .json(new ApiResponce(200,post,"Post created successfully"))
+              .json(new ApiResponce(201,post,"Post created successfully"))
 })
 
 const upvote = asyncHandler(async (req,res) => {
