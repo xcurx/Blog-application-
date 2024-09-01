@@ -1,4 +1,4 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { Post } from "../models/post.model.js";
 import { Upvote } from "../models/upvote.model.js";
 import { User } from "../models/user.model.js";
@@ -6,6 +6,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponce } from "../utils/ApiResponce.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {recursiveComments} from "../utils/helper.js"
 
 const createPost = asyncHandler(async (req, res) => {
   const { title, content } = req.body;
@@ -223,19 +224,14 @@ const getPost = asyncHandler(async (req, res) => {
             },
           },
           {
-            $addFields: {
-              account: {
-                $first: "$account",
-              },
-            },
+            $unwind:{
+              path:"$account",
+              preserveNullAndEmptyArrays:true
+            }
           },
           {
             $project: {
-              account: {
-                username: 1,
-                name: 1,
-                profilePicture: 1,
-              },
+              account:1
             },
           },
         ],
@@ -266,84 +262,12 @@ const getPost = asyncHandler(async (req, res) => {
               connectFromField: "_id",
               connectToField: "commentRepliedTo",
               as: "replies",
+              depthField: "depth",
+              maxDepth:10,
               restrictSearchWithMatch: {
                 post: new mongoose.Types.ObjectId(postId),
               },
             },
-          },
-          {
-            $unwind: {
-              path: "$replies",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $lookup: {
-              from: "users",
-              localField: "replies.commentedBy",
-              foreignField: "_id",
-              as: "replies.commentedBy",
-            },
-          },
-          {
-            $unwind: {
-              path: "$replies.commentedBy",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-          {
-            $group: {
-              _id: "$_id",
-              post: { $first: "$post" },
-              commentedBy: {
-                $first: "$commentedBy",
-              },
-              isReplyToComment: {
-                $first: "$isReplyToComment",
-              },
-              commentRepliedTo: {
-                $first: "$commentRepliedTo",
-              },
-              content: { $first: "$content" },
-              createdAt: { $first: "$createdAt" },
-              commentedBy: {
-                $first: "$commentedBy",
-              },
-              replies: { $push: "$replies" },
-            },
-          },
-          {
-            $project: {
-              _id: 1,
-              commentedBy: 1,
-              isReplyToComment: 1,
-              commentRepliedTo: 1,
-              content: 1,
-              createdAt: 1,
-              commentedBy: {
-                _id: 1,
-                name: 1,
-                username: 1,
-                profilePicture: 1,
-              },
-              replies: {
-                _id: 1,
-                commentedBy: 1,
-                isReplyToComment: 1,
-                commentRepliedTo: 1,
-                content: 1,
-                createdAt: 1,
-                commentedBy: {
-                  _id: 1,
-                  name: 1,
-                  username: 1,
-                  profilePicture: 1,
-                },
-              },
-            },
-          },
-          {
-            $sort: { createdAt: 1 },
           },
           {
             $lookup: {
@@ -363,25 +287,97 @@ const getPost = asyncHandler(async (req, res) => {
             },
           },
           {
+            $unwind:{
+              path: "$commentedBy",
+              preserveNullAndEmptyArrays:true
+            }
+          },
+          {
+            $lookup: {
+              from: 'users',                  
+              localField: 'replies.commentedBy',
+              foreignField: '_id',            
+              as: 'userInfo'
+            }
+          },
+          {
             $addFields: {
-              commentedBy: {
-                $first: "$commentedBy",
-              },
+              replies: {
+                $map: {
+                  input: "$replies",
+                  as: "reply",
+                  in: {
+                    _id: "$$reply._id",
+                    commentedBy: {
+                      $arrayElemAt: [
+                        {
+                          $map: {
+                            input: {
+                              $filter: {
+                                input: "$userInfo",
+                                as: "user",
+                                cond: { $eq: ["$$reply.commentedBy", "$$user._id"] }
+                              }
+                            },
+                            as: "filteredUser",
+                            in: {
+                              _id: "$$filteredUser._id",     
+                              name: "$$filteredUser.name",        
+                              username: "$$filteredUser.username",
+                              profilePicture: "$$filteredUser.profilePicture"   
+                            }
+                          }
+                        },
+                        0
+                      ]
+                    },
+                    content: "$$reply.content",
+                    isReplyToComment: "$$reply.isReplyToComment",
+                    commentRepliedTo: "$$reply.commentRepliedTo",
+                    createdAt: "$$reply.createdAt",
+                    depth: "$$reply.depth",
+                    replies: { $ifNull: ["$$reply.replies", []] },
+                  }
+                }
+              }
+            }
+          },
+          {
+            $project: {
+              _id: 1,
+              commentedBy: 1,
+              isReplyToComment: 1,
+              content: 1,
+              replies: 1,
+              createdAt: 1,
             },
+          },
+          {
+            $sort: { createdAt: 1 },
           },
         ],
         as: "comments",
       },
     },
+    {
+      $addFields: {
+        totalComments: { $sum: [{ $size: "$comments" }, { $sum: "$comments.replies.depth" }] },
+      },
+    },
   ]);
-
   if (!post) {
     throw new ApiError(400, "No such post");
   }
+
+  post[0].comments.forEach((comment) => {
+    comment.replies = [...recursiveComments(comment.replies,comment._id.toString())]
+  })
 
   return res
     .status(200)
     .json(new ApiResponce(200, post, "Post data retreived"));
 });
+
+
 
 export { createPost, upvote, downVote, allPosts, getPost };

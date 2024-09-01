@@ -22,6 +22,6 @@ const commentModel = Schema({
         type:String,
         required:true
     }
-},{timeStamps:true})
+},{timestamps:true})
 
 export const Comment = mongoose.model("Comment",commentModel)
