@@ -49,6 +49,29 @@ const comment = asyncHandler(async (req,res) => {
               .json(new ApiResponce(201,comment,"Comment Successfull"))
 })
 
+const getAllReplies = asyncHandler(async (req,res) => {
+    const {postId, commentId} = req.params
+
+    console.log(postId,commentId);
+
+    if(!postId){
+        throw new ApiError(400,"Post Id is required")
+    }
+
+    if(!req.user){
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    const replies = await Comment.find({post:postId, commentRepliedTo:commentId})
+    if(!replies){
+        throw new ApiError(500,"Something went wrong")
+    }
+
+    res.status(200)
+       .json(new ApiResponce(200,replies,"Replies collected"))
+})
+
 export {
     comment,
+    getAllReplies
 }
