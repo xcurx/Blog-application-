@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs'
 
 cloudinary.config({ 
     cloud_name: 'xcurxcloud', 
@@ -13,8 +14,10 @@ const uploadOnCloudinary = async (localFilePath) => {
         const res = await cloudinary.uploader.upload(localFilePath,{
             resource_type:'auto'
         })
+        fs.unlinkSync(localFilePath)
         return res
     } catch (error) {
+        fs.unlinkSync(localFilePath)
         return null
     }
 }

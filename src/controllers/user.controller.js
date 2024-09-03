@@ -2,6 +2,7 @@ import {asyncHandler} from '../utils/asyncHandler.js'
 import { User } from '../models/user.model.js'
 import {ApiError} from '../utils/ApiError.js'
 import {ApiResponce} from '../utils/ApiResponce.js'
+import { uploadOnCloudinary } from '../utils/cloudinary.js'
 
 const options = {
     httpOnly:true,
@@ -124,9 +125,61 @@ const logout = asyncHandler(async (req,res) => {
               .json(new ApiResponce(200,{},"User successfully logged out"))
 })
 
+const updateProfilePicture = asyncHandler(async (req,res) => {
+    if(!req.user){
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    const user = req.user
+
+    const profilePicLocalPath = req.file?.path
+    if(profilePicLocalPath){
+        const profilePic = await uploadOnCloudinary(profilePicLocalPath)
+        if(!profilePic.url){
+            throw new ApiError(500,"Error Uploading")
+        }
+        user.profilePicture = profilePic.url
+        await user.save()
+    }else{
+        await user.updateOne({ $unset:{ profilePicture:"" } })
+    }
+
+    return res.status(200)
+              .json(new ApiResponce(200,user,"Profile picture updated"))
+})
+
+const updateProfile = asyncHandler(async (req,res) => {
+    const {username,name,bio} = req.body
+
+    if(!username?.trim() && !name?.trim() && !bio?.trim()){
+        throw new ApiError(400, "No fields to update")
+    }
+
+    if(!req.user){
+        throw new ApiError(401, "Unauthorized request")
+    }
+
+    if(username?.trim()){
+        const userExist = await User.findOne({ username })
+        if(userExist){
+            throw new ApiError(400,"This username already exists")
+        }
+    }
+
+    const user = req.user
+    user.username = username || user.username
+    user.name = name || user.name
+    user.bio = bio || user.bio
+    await user.save()
+    
+    return res.status(200)
+              .json(new ApiResponce(200,user,"User profile updated successfully"))
+})
 
 export {
     registerUser,
     login,
-    logout
+    logout,
+    updateProfilePicture,
+    updateProfile,
 }
