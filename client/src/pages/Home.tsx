@@ -6,9 +6,12 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 
 import { Post as PostType } from '../interfaces/post';
+import { useNavigate } from 'react-router-dom';
+import Loader from '../components/shared/Loader';
 
 const HomeComp = () => {
     const [posts, setPosts] = useState<PostType[] | null>(null);
+    const navigate = useNavigate();
  
     const homePosts = async () => {
         const res = await axios.get(`${URL}/posts/home`, { withCredentials: true });
@@ -24,11 +27,9 @@ const HomeComp = () => {
         {
             posts != null && posts?.length > 0 
                 ? posts.map((post, index) => (
-                    <Post key={index} post={post}/>
+                    <Post key={index} post={post} onClick={() => navigate(`post/${post._id}`)}/>
                 ))
-                : (<div className="flex justify-center items-center h-full w-full">
-                  <span className="loader"></span>
-                  </div>)
+                : <Loader height='h-screen'/>
         }
     </ScrollArea>
   )

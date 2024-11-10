@@ -9,7 +9,7 @@ import { Post as PostType } from '../../interfaces/post'
 import { useWidth } from '../../hooks/use-mobile'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel'
 
-const Post = ({post}:{post:PostType}) => {
+const Post = ({ post, ...props }: { post: PostType, [key: string]: unknown }) => {
     const width = useWidth();
 
   return (
@@ -19,6 +19,7 @@ const Post = ({post}:{post:PostType}) => {
         maxWidth: "700px",
         width: width && width < 700 ? width : "auto",
      }}
+     {...props}
     >
         <div className='flex space-x-3 items-center'>
             <div>
@@ -51,8 +52,6 @@ const Post = ({post}:{post:PostType}) => {
                     <img src={image} alt={post.title} className='rounded-xl w-full h-96 object-cover'/>
                   </CarouselItem>
                 ))}
-                {
-            }
               </CarouselContent>
               {
                 post.images.length > 1 && (

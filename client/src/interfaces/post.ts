@@ -29,6 +29,7 @@ interface Comment {
     isReplyToComment: boolean;
     createdAt: string;
     updatedAt: string;
+    replies: Comment[];
 }
 
 interface Upvote {

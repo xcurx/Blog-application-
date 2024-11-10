@@ -11,10 +11,6 @@ const comment = asyncHandler(async (req,res) => {
     if(!postId || !content.trim()){
         throw new ApiError(400,"Post id and content is required")   
     }
-
-    if(!req.user){
-        throw new ApiError(401,"Unauthorized request")
-    }
     
     if(!mongoose.Types.ObjectId.isValid(postId)){
         throw new ApiError(400,"Invalid Post Id")
@@ -34,13 +30,15 @@ const comment = asyncHandler(async (req,res) => {
         }
     }
 
-    const comment = await Comment.create({
+    let comment = await Comment.create({
         post: postId,
         commentedBy: req.user._id,
         isReplyToComment: commentId?true:false,
         commentRepliedTo: commentId,
         content
     })
+    comment = await comment.populate('commentedBy', '-password -refreshToken -bio')
+
     if(!comment){
         throw new ApiError(500,"Something went wrong while commenting")
     }

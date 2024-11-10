@@ -1,4 +1,4 @@
-import { lazy, useEffect, useState} from "react";
+import { lazy, Suspense, useEffect, useState} from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { useAppSelector } from "./store/store";
 import { useDispatch } from "react-redux";
@@ -6,6 +6,7 @@ import axios from "axios";
 import { URL } from "../constants";
 import { setUser } from "./store/authSlice";
 import './style.css';
+import Loader from "./components/shared/Loader";
 
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
@@ -44,13 +45,33 @@ function App() {
     <BrowserRouter>
         <Routes>
           <Route element={<Protected user={user} redirect="/login"/>} path="/">
-            <Route path="/" element={<Home/>}/>
-            <Route path="/post" element={<PostPage/>}/>
+            <Route path="/" element={
+              <Suspense fallback={<Loader/>}>
+                <Home/>
+              </Suspense>
+            }/>
+            <Route path="/post/:postId" element={
+              <Suspense fallback={<Loader/>}>
+                <PostPage/>
+              </Suspense>
+            }/>
           </Route>
 
-          <Route path="/register" element={<Protected user={!user} redirect="/"><Register/></Protected>}/>
-          <Route path="/login" element={<Protected user={!user} redirect="/"><Login/></Protected>}/>
-          <Route path="*" element={<Home/>}/>
+          <Route path="/register" element={
+            <Suspense fallback={<Loader/>}>
+              <Protected user={!user} redirect="/"><Register/></Protected>
+            </Suspense>
+          }/>
+          <Route path="/login" element={
+            <Suspense fallback={<Loader/>}>
+              <Protected user={!user} redirect="/"><Login/></Protected>
+            </Suspense>
+          }/>
+          <Route path="*" element={
+            <Suspense fallback={<Loader/>}>
+              <Home/>
+            </Suspense>
+          }/>
         </Routes>
     </BrowserRouter>
   )
