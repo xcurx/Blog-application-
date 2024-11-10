@@ -134,12 +134,41 @@ const allPosts = asyncHandler(async (req, res) => {
         localField: "_id",
         foreignField: "account",
         as: "posts",
+        pipeline:[
+          {
+            $lookup:{
+              from:"upvotes",
+              localField:"_id",
+              foreignField:"post",
+              as:"upvotes",
+            },
+          },
+          {
+            $lookup:{
+              from:"comments",
+              localField:"_id",
+              foreignField:"post",
+              as:"comments",
+            },
+          },
+          {
+            $addFields:{
+              upvotes:{
+                $size:"$upvotes"
+              },
+              comments:{
+                $size:"$comments"
+              }
+            }
+          }
+        ]
       },
     },
     {
       $project: {
         username: 1,
         name: 1,
+        profilePicture: 1,
         posts: 1,
       },
     },
@@ -159,10 +188,6 @@ const getPost = asyncHandler(async (req, res) => {
 
   if (!postId) {
     throw new ApiError(400, "Post Id is required");
-  }
-
-  if (!req.user) {
-    throw new ApiError(401, "Unauthorized request");
   }
 
   if (!mongoose.Types.ObjectId.isValid(postId)) {
@@ -200,59 +225,39 @@ const getPost = asyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup:{
+        from:"comments",
+        localField:"_id",
+        foreignField:"post",
+        as:"comments",
+      }
+    },
+    {
       $lookup: {
         from: "upvotes",
         localField: "_id",
         foreignField: "post",
-        as: "upvotedBy",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "account",
-              foreignField: "_id",
-              as: "account",
-              pipeline: [
-                {
-                  $project: {
-                    username: 1,
-                    name: 1,
-                    profilePicture: 1,
-                  },
-                },
-              ],
-            },
-          },
-          {
-            $unwind:{
-              path:"$account",
-              preserveNullAndEmptyArrays:true
-            }
-          },
-          {
-            $project: {
-              account:1
-            },
-          },
-        ],
+        as: "upvotes",
       },
     },
+    {
+      $addFields:{
+        comments:{$size:"$comments"},
+        upvotes:{$size:"$upvotes"}
+      }
+    }
   ]);
   if (!post) {
     throw new ApiError(400, "No such post");
   }
 
-  const comments = await Comment.find({ post:postId , isReplyToComment:false}).lean()
-
-  //***** alternate method to get commnets (Finds all comments therefore timeconsuming) *****
+  //***** alternate method to get comments (Finds all comments therefore timeconsuming) *****
   // const populatedComments = await Promise.all(
   //   comments.map(async (comment) => {
   //     comment.replies = await recursiveComments(comment, postId);
   //     return comment;
   //   })
   // )
-
-  post[0].comments = comments
 
   return res
     .status(200)
@@ -272,4 +277,58 @@ const recursiveComments = async (comment,postId) => {
   return populatedReplies
 }
 
-export { createPost, upvote, downVote, allPosts, getPost };
+const getUserPosts = asyncHandler(async (req, res) => {
+  const user = req.user;
+  req.params.username = user.username;
+  return allPosts(req, res);
+})
+
+const homePosts = asyncHandler(async (req, res) => {
+  const posts = await Post.aggregate([
+    {
+      $lookup:{
+        from:"users",
+        localField:"account",
+        foreignField:"_id",
+        as:"account",
+        pipeline:[
+          {
+            $project:{
+              _id:1,
+              username:1,
+              name:1,
+              profilePicture:1
+            }
+          }
+        ]
+      }
+    },
+    {
+      $lookup:{
+        from:"upvotes",
+        localField:"_id",
+        foreignField:"post",
+        as:"upvotes"
+      }
+    },
+    {
+      $lookup:{
+        from:"comments",
+        localField:"_id",
+        foreignField:"post",
+        as:"comments"
+      }
+    },
+    {
+      $addFields:{
+        upvotes:{$size:"$upvotes"},
+        comments:{$size:"$comments"},
+        account:{$first:"$account"}
+      }
+    },
+  ])
+
+  return res.status(200).json(new ApiResponce(200,posts,"Home posts"))
+})
+
+export { createPost, upvote, downVote, allPosts, getPost, getUserPosts, homePosts };

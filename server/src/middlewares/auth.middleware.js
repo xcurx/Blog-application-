@@ -6,11 +6,13 @@ import jwt from 'jsonwebtoken'
 
 const verifyJWT = asyncHandler(async (req,res,next) => {
     const token = req.cookies?.accessToken
-
+    // console.log(req.cookies?.refreshToken);
+    // console.log(req.cookies?.accessToken);
     if(!token){
         throw new ApiError(403,"Unauthorized request")
     }
-
+    console.log("working");
+    
     const decodedToken = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
 
     const user = await User.findById(decodedToken?._id).select("-password -refreshToken")

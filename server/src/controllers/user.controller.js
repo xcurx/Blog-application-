@@ -6,7 +6,8 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js'
 
 const options = {
     httpOnly:true,
-    secure:true
+    secure:false,
+    sameSite:"lax",
 }
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -176,10 +177,78 @@ const updateProfile = asyncHandler(async (req,res) => {
               .json(new ApiResponce(200,user,"User profile updated successfully"))
 })
 
+const getUser = asyncHandler(async (req,res) => {
+    if(!req.user){
+        throw new ApiError(401,"Unauthorized request")
+    }
+
+    const user = req.user
+    return res.status(200)
+              .json(new ApiResponce(200,user,"Current User fetched successfully"))
+})
+
+const profile = asyncHandler(async (req,res) => {
+    const {username} = req.params
+
+    const user = await User.aggregate([
+        {
+            $match:{ username }
+        },
+        {
+            $lookup:{
+                from:"posts",
+                localField:"_id",
+                foreignField:"account",
+                as:"posts"
+            }
+        },
+        {
+            $lookup:{
+                from:"follows",
+                localField:"_id",
+                foreignField:"follower",
+                as:"following"
+            }
+        },
+        {
+            $lookup:{
+                from:"follows",
+                localField:"_id",
+                foreignField:"account",
+                as:"followers"
+            }
+        },
+        {
+            $addFields:{
+                followers:{$size:"$followers"},
+                following:{$size:"$following"},
+                posts:{$size:"$posts"}
+            }
+        },
+        {
+            $project:{
+                password:0,
+                refreshToken:0
+            }
+        }
+    ])
+
+    if(!user){
+        throw new ApiError(404,"User not found")
+    }
+
+    return res.status(200)
+              .json(new ApiResponce(200,user[0],"User profile"))
+})
+
+
+
 export {
     registerUser,
     login,
     logout,
     updateProfilePicture,
     updateProfile,
+    getUser,
+    profile
 }
