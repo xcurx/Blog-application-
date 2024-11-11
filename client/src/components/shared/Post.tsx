@@ -56,8 +56,8 @@ const Post = ({ post, ...props }: { post: PostType, [key: string]: unknown }) =>
               {
                 post.images.length > 1 && (
                     <>
-                        <CarouselPrevious />
-                        <CarouselNext />
+                        <CarouselPrevious onClick={(e:React.MouseEvent) => {e.stopPropagation()}}/>
+                        <CarouselNext onClick={(e:React.MouseEvent) => e.stopPropagation()}/>
                     </>
                 )
               }

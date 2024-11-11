@@ -81,7 +81,8 @@ const Comment = ({comment, indent=0}:{comment:CommentType, indent?:number}) => {
                              className="w-full"
                              onChange={(e) => setReply(e.target.value)} 
                             />
-                            <div className="flex justify-end">
+                            <div className="flex justify-end my-2 space-x-2">
+                                <Button onClick={handleReply} variant={"destructive"}>Cancel</Button>
                                 <Button 
                                  onClick={handleReplySubmit}
                                 >

@@ -3,7 +3,7 @@ import { URL } from "../../constants";
 import AppLayout from '../components/layout/AppLayout';
 import Post from '../components/shared/Post';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Post as PostType } from '../interfaces/post';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +27,13 @@ const HomeComp = () => {
         {
             posts != null && posts?.length > 0 
                 ? posts.map((post, index) => (
-                    <Post key={index} post={post} onClick={() => navigate(`post/${post._id}`)}/>
+                    <Post 
+                     key={index} 
+                     post={post} 
+                     onClick={() => navigate(`post/${post._id}`)}
+                     onMouseEnter={(e:React.MouseEvent) => (e.currentTarget as HTMLElement).style.backgroundColor = '#121212'}
+                     onMouseLeave={(e:React.MouseEvent) => (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(0, 0, 0, 0)'}
+                    />
                 ))
                 : <Loader height='h-screen'/>
         }

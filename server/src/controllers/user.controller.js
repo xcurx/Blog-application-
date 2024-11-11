@@ -136,7 +136,7 @@ const updateProfilePicture = asyncHandler(async (req,res) => {
     const profilePicLocalPath = req.file?.path
     if(profilePicLocalPath){
         const profilePic = await uploadOnCloudinary(profilePicLocalPath)
-        if(!profilePic.url){
+        if(!profilePic?.url){
             throw new ApiError(500,"Error Uploading")
         }
         user.profilePicture = profilePic.url
