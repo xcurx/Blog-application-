@@ -1,5 +1,5 @@
 import moment from "moment"
-import { Comment as CommentType } from "../../interfaces/post"
+import { Comment as CommentType } from "../../interfaces/interface"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button";
 import { ArrowUpIcon } from "lucide-react";

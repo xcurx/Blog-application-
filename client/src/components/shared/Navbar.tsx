@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '../ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
+import { useEffect, useState } from 'react';
+import { User } from '../../interfaces/interface';
 
 const Navbar = ({ className }:{ className?:string}) => {
   const dispatch = useDispatch();
@@ -48,6 +50,19 @@ const Navbar = ({ className }:{ className?:string}) => {
 }
 
 const DiaglogComponent = () => {
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [search, setSearch] = useState('');
+
+  const searchHandler = async () => {
+    const res = await axios.get(`${URL}/users/search?query=${search}`, { withCredentials: true });
+    if(res.status !== 200) return;
+    setUsers(res.data?.data);
+  }
+
+  useEffect(() => {
+    searchHandler();
+  }, [search]);
+
   return (
     <Dialog>
       <DialogTrigger>
@@ -61,12 +76,12 @@ const DiaglogComponent = () => {
           <DialogTitle className='text-center'>Search</DialogTitle>
         </DialogHeader>
         <div>
-          <Input placeholder='Search' />
+          <Input placeholder='Search' onChange={(e) => {setSearch(e.target.value)}}/>
         </div>
         <ScrollArea className='h-80 w-full p-2'>
           {
-            Array.from({length: 50}).map((_, i) => (
-              <UserList key={i}/>
+            users?.map((user, i) => (
+              <UserList user={user} key={i}/>
             ))
           }
         </ScrollArea>
@@ -75,16 +90,16 @@ const DiaglogComponent = () => {
   )
 }
 
-const UserList = () => {
+const UserList = ({user}:{user:User}) => {
   return (
     <div className='flex items-center justify-between mt-2'>
       <div className='flex items-center space-x-3'>
         <Avatar>
-          <AvatarImage/>
+          <AvatarImage src={user.profilePicture}/>
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
         <div>
-            name
+            {user.username}
         </div>
       </div>
       <div>

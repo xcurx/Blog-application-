@@ -5,7 +5,7 @@ import Post from '../components/shared/Post';
 import { ScrollArea } from '../components/ui/scroll-area';
 import React, { useEffect, useState } from 'react';
 
-import { Post as PostType } from '../interfaces/post';
+import { Post as PostType } from '../interfaces/interface';
 import { useNavigate } from 'react-router-dom';
 import Loader from '../components/shared/Loader';
 

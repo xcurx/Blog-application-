@@ -5,7 +5,7 @@ import { Button } from '../ui/button'
 import { ArrowUpIcon } from 'lucide-react'
 import { ChatBubbleIcon } from '@radix-ui/react-icons'
 
-import { Post as PostType } from '../../interfaces/post'
+import { Post as PostType } from '../../interfaces/interface'
 import { useWidth } from '../../hooks/use-mobile'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel'
 

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { Button } from '../ui/button'
 import { Settings2 } from 'lucide-react'
-import { Profile } from '../../interfaces/post'
+import { Profile } from '../../interfaces/interface'
 import axios from 'axios'
 import { URL } from '../../../constants'
 

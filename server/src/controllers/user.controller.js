@@ -241,6 +241,23 @@ const profile = asyncHandler(async (req,res) => {
               .json(new ApiResponce(200,user[0],"User profile"))
 })
 
+const search = asyncHandler(async (req,res) => {
+    const { query } = req.query
+
+    if(!query){
+        throw new ApiError(400,"No search query provided")
+    }
+
+    const users = await User.find({$or:[
+                                { username: { $regex: query, $options: "i" } },
+                                { name: { $regex: query, $options: "i" } }
+                            ]})
+                            .select("username name profilePicture")
+
+    return res.status(200)
+              .json(new ApiResponce(200,users,"Users fetched successfully"))
+})
+
 
 
 export {
@@ -250,5 +267,6 @@ export {
     updateProfilePicture,
     updateProfile,
     getUser,
-    profile
+    profile,
+    search
 }

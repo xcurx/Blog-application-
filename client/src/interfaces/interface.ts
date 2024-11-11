@@ -50,7 +50,6 @@ interface MyPost {
     posts: Post[]
 }
 
-
 interface Profile {
     _id: string;
     username: string;
@@ -63,10 +62,18 @@ interface Profile {
     createdAt: string;
 }
 
+interface User {
+    _id: string;
+    username: string;
+    name: string;
+    profilePicture: string;
+}
+
 export type {
     Post,
     MyPost,
     Profile,
     Comment,
     Upvote,
+    User
 }
