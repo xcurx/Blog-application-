@@ -8,6 +8,7 @@ import { ChatBubbleIcon } from '@radix-ui/react-icons'
 import { Post as PostType } from '../../interfaces/interface'
 import { useWidth } from '../../hooks/use-mobile'
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '../ui/carousel'
+import { memo } from 'react'
 
 const Post = ({ post, ...props }: { post: PostType, [key: string]: unknown }) => {
     const width = useWidth();
@@ -88,4 +89,4 @@ const Post = ({ post, ...props }: { post: PostType, [key: string]: unknown }) =>
   )
 }
 
-export default Post
+export default memo(Post)
